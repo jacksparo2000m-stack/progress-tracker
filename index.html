@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>سجل الإنجاز</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#39456A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="سجل الإنجاز">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDEAE0;
+    --paper-raised: #F7F5EE;
+    --ink: #262420;
+    --ink-soft: #6B6659;
+    --line: #D8D3C3;
+    --indigo: #39456A;
+    --indigo-soft: #AEB6CE;
+    --ochre: #B87A2E;
+    --ochre-soft: #EAD6B4;
+    --good: #4C7A51;
+    --danger: #A5453B;
+    --radius: 3px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1D1C19; --paper-raised: #26241F; --ink: #EDEAE0; --ink-soft: #9B9688;
+      --line: #3A3730; --indigo: #8E9BCB; --indigo-soft: #39456A; --ochre: #D99C4F;
+      --ochre-soft: #4A3A22; --good: #7FB884; --danger: #D4786D; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1D1C19; --paper-raised: #26241F; --ink: #EDEAE0; --ink-soft: #9B9688;
+    --line: #3A3730; --indigo: #8E9BCB; --indigo-soft: #39456A; --ochre: #D99C4F;
+    --ochre-soft: #4A3A22; --good: #7FB884; --danger: #D4786D; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink); font-family: 'Tajawal', sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--paper); z-index: 10; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  header { margin-bottom: 28px; }
+  .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); margin: 0; font-weight: 900; line-height: 1.15; }
+  h1 .en { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 400; color: var(--ink-soft); letter-spacing: 0.3px; margin-top: 6px; direction: ltr; text-align: right; }
+  .btn-row { display: flex; gap: 8px; }
+  .theme-btn, .status-pill {
+    background: var(--paper-raised); border: 1px solid var(--line); color: var(--ink);
+    border-radius: var(--radius); padding: 8px 14px; font-family: inherit; font-size: 13px;
+  }
+  .theme-btn { cursor: pointer; }
+  .theme-btn:hover { border-color: var(--indigo); }
+  .status-pill { color: var(--ink-soft); font-size: 12px; display: flex; align-items: center; }
+
+  .overall {
+    margin-top: 20px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper-raised); padding: 16px 18px; display: flex; align-items: center; gap: 16px;
+  }
+  .overall-num { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500; color: var(--indigo); min-width: 64px; }
+  .overall-track { flex: 1; height: 6px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .overall-fill { height: 100%; background: var(--indigo); transition: width .4s ease; }
+  .overall-label { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 24px; }
+  @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-raised); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+  .card-title { font-size: 19px; font-weight: 700; }
+  .card-title .en { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 400; color: var(--ink-soft); direction: ltr; text-align: right; margin-top: 3px; }
+  .pct-badge { font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: var(--ochre); font-weight: 500; white-space: nowrap; }
+
+  .target-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .target-row input { width: 56px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 5px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink); text-align: center; }
+  .target-row input:focus { outline: none; border-color: var(--indigo); }
+
+  .track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; background: var(--ochre); transition: width .3s ease; }
+
+  .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-left: 2px; }
+  .log-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; font-size: 14px; }
+  .log-text { flex: 1; word-break: break-word; }
+  .log-date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); white-space: nowrap; direction: ltr; }
+  .log-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; }
+  .log-empty { font-size: 13px; color: var(--ink-soft); padding: 6px 2px; }
+
+  .add-row { display: flex; gap: 8px; }
+  .add-row input[type="text"] { flex: 1; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 10px; font-family: inherit; font-size: 14px; color: var(--ink); }
+  .add-row input[type="text"]:focus, .add-row input[type="date"]:focus { outline: none; border-color: var(--indigo); }
+  .add-row input[type="date"] { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink); direction: ltr; }
+  .add-btn { background: var(--indigo); color: var(--paper-raised); border: none; border-radius: var(--radius); padding: 0 16px; font-family: inherit; font-size: 14px; cursor: pointer; font-weight: 500; }
+  .add-btn:hover { opacity: .9; }
+
+  footer { margin-top: 30px; text-align: center; font-size: 12px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top-row">
+      <h1>سجل الإنجاز<span class="en">semester progress log</span></h1>
+      <div class="btn-row">
+        <span class="status-pill" id="statusPill">يعمل بدون نت</span>
+        <button class="theme-btn" id="themeBtn">الوضع الليلي</button>
+      </div>
+    </div>
+    <div class="overall">
+      <div class="overall-num" id="overallNum">0%</div>
+      <div class="overall-track"><div class="overall-fill" id="overallFill" style="width:0%"></div></div>
+      <div class="overall-label">المعدل العام · overall</div>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <footer id="footerNote">بياناتك محفوظة في هذا الجهاز، والصفحة شغالة حتى من غير نت بعد أول فتح · works offline after first load</footer>
+</div>
+
+<script>
+const COURSES = [
+  { id: 'struct_prog', ar: 'برمجة هيكلية', en: 'Structured Programming' },
+  { id: 'data_struct', ar: 'هياكل بيانات', en: 'Data Structures' },
+  { id: 'databases',   ar: 'قواعد البيانات', en: 'Databases' },
+  { id: 'file_org',    ar: 'تنظيم ملفات', en: 'File Organization' },
+  { id: 'math3',       ar: 'رياضيات ٣', en: 'Math 3' },
+  { id: 'comp_arch',   ar: 'عمارة حاسب', en: 'Computer Architecture' },
+];
+const DEFAULT_TARGET = 14;
+// NOTE: never change this key again in future edits — changing it is what wipes
+// everyone's locally-saved data on an update. Keep it stable forever.
+const STORE_KEY = 'progress_tracker_v2';
+const LEGACY_KEYS = ['progress_tracker_v1'];
+
+let db = null;
+let synced = false;
+
+function freshCourseData() { return { log: [], target: DEFAULT_TARGET }; }
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+    // migrate forward from any older key so an update never looks like data loss
+    for (const oldKey of LEGACY_KEYS) {
+      const oldRaw = localStorage.getItem(oldKey);
+      if (oldRaw) {
+        localStorage.setItem(STORE_KEY, oldRaw);
+        return JSON.parse(oldRaw);
+      }
+    }
+  } catch (e) {}
+  const fresh = {};
+  COURSES.forEach(c => fresh[c.id] = freshCourseData());
+  return fresh;
+}
+
+let state = loadLocal();
+COURSES.forEach(c => { if (!state[c.id]) state[c.id] = freshCourseData(); });
+
+function saveLocal() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+function computePct(data) {
+  if (!data.target || data.target <= 0) return 0;
+  return Math.min(100, Math.round((data.log.length / data.target) * 100));
+}
+
+function renderOverall() {
+  const total = COURSES.reduce((s, c) => s + computePct(state[c.id]), 0);
+  const avg = Math.round(total / COURSES.length);
+  document.getElementById('overallNum').textContent = avg + '%';
+  document.getElementById('overallFill').style.width = avg + '%';
+}
+
+async function persist(courseId) {
+  saveLocal();
+  if (db && synced) {
+    try {
+      await db.collection('data/users/me/courses').doc(courseId).set(state[courseId]);
+    } catch (e) {}
+  }
+}
+
+function renderCard(course) {
+  const data = state[course.id];
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-title">${course.ar}<span class="en">${course.en}</span></div>
+      <div class="pct-badge" data-pct>${computePct(data)}%</div>
+    </div>
+    <div class="target-row">
+      عدد المحاضرات/السكاشن الكلي للمادة:
+      <input type="number" min="1" max="60" data-target value="${data.target}">
+    </div>
+    <div class="track"><div class="fill" data-fill style="width:${computePct(data)}%"></div></div>
+    <div class="log-list" data-log></div>
+    <div class="add-row">
+      <input type="text" placeholder="إيه الي انجزته؟ (محاضرة ٣، سكشن ٢..)" data-text>
+      <input type="date" data-date value="${todayISO()}">
+      <button class="add-btn" data-add>إضافة</button>
+    </div>
+  `;
+
+  const badge = card.querySelector('[data-pct]');
+  const fill = card.querySelector('[data-fill]');
+  function refreshPct() {
+    const p = computePct(data);
+    badge.textContent = p + '%';
+    fill.style.width = p + '%';
+    renderOverall();
+  }
+
+  card.querySelector('[data-target]').addEventListener('change', (e) => {
+    let v = parseInt(e.target.value, 10);
+    if (!v || v < 1) v = 1;
+    data.target = v;
+    refreshPct();
+    persist(course.id);
+  });
+
+  const logEl = card.querySelector('[data-log]');
+  function renderLog() {
+    logEl.innerHTML = '';
+    if (!data.log.length) {
+      logEl.innerHTML = '<div class="log-empty">لسه مفيش حاجة متسجلة في المادة دي</div>';
+      return;
+    }
+    [...data.log].reverse().forEach((entry) => {
+      const realIndex = data.log.indexOf(entry);
+      const row = document.createElement('div');
+      row.className = 'log-item';
+      row.innerHTML = `
+        <span class="log-text">${escapeHtml(entry.text)}</span>
+        <span class="log-date">${entry.date}</span>
+        <button class="log-del" title="حذف" data-del>✕</button>
+      `;
+      row.querySelector('[data-del]').addEventListener('click', () => {
+        data.log.splice(realIndex, 1);
+        renderLog();
+        refreshPct();
+        persist(course.id);
+      });
+      logEl.appendChild(row);
+    });
+  }
+  renderLog();
+
+  card.querySelector('[data-add]').addEventListener('click', () => {
+    const textInput = card.querySelector('[data-text]');
+    const dateInput = card.querySelector('[data-date]');
+    const text = textInput.value.trim();
+    if (!text) { textInput.focus(); return; }
+    data.log.push({ text, date: dateInput.value || todayISO() });
+    textInput.value = '';
+    renderLog();
+    refreshPct();
+    persist(course.id);
+  });
+  card.querySelector('[data-text]').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') card.querySelector('[data-add]').click();
+  });
+
+  return card;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderAll() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  COURSES.forEach(c => grid.appendChild(renderCard(c)));
+  renderOverall();
+}
+renderAll();
+
+const themeBtn = document.getElementById('themeBtn');
+function applyThemeLabel() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  themeBtn.textContent = cur === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي';
+}
+themeBtn.addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('theme_pref', next); } catch(e) {}
+  applyThemeLabel();
+});
+try {
+  const saved = localStorage.getItem('theme_pref');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+} catch(e) {}
+applyThemeLabel();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
